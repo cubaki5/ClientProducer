@@ -3,58 +3,67 @@ package adapter
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
+	"github.com/labstack/gommon/log"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 
 	"clientProducer/internal/domain"
 )
 
-type Client interface {
-	GetBufferFreeSpace() (bufferFreeSpace int, err error)
-}
-
-type Adapter struct {
+type ClientAdapter struct {
 	client http.Client
 }
 
-//func NewClient() *client {
-//	return &client{
-//		Transport:     nil,
-//		CheckRedirect: nil,
-//		Jar:           nil,
-//		Timeout:       0,
-//	}
-//}
-
-func GetBufferFreeSpace() (bufferFreeSpace int, err error) {
-	client.Get()
-}
-
-func PostBatch(batch []domain.Item) (by []byte, err error) {
-	http.New
-	resp, err := marshallingAndPostReq(batch)
-	if err != nil {
-		return nil, err
+func NewClientAdapter() *ClientAdapter {
+	return &ClientAdapter{
+		client: http.Client{
+			Transport:     nil,
+			CheckRedirect: nil,
+			Jar:           nil,
+			Timeout:       0,
+		},
 	}
-	by, err = ioutil.ReadAll(resp.Body)
+}
+
+func (ca *ClientAdapter) GetBufferFreeSpace() (bufferFreeSpace int, err error) {
+	resp, err := ca.client.Get("http://localhost:1323/buffer")
+	if resp.StatusCode != 200 {
+		return 0, errors.New("server is full")
+	}
+	by, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return 0, err
+	}
+	bufferFreeSpace, err = strconv.Atoi(string(by))
+	if err != nil {
+		return 0, err
+	}
+	return bufferFreeSpace, nil
+}
+
+func (ca *ClientAdapter) PostBatch(batch []domain.Item) error {
+	resp, err := ca.marshallingAndPostReq(batch)
+	if err != nil {
+		return err
 	}
 
-	return by, nil
+	by, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+	log.Debug(by)
+
+	return nil
 }
 
-func getReq() (resp *http.Response, err error) {
-
-}
-
-func (a *Adapter) marshallingAndPostReq(batch []domain.Item) (resp *http.Response, err error) {
+func (ca *ClientAdapter) marshallingAndPostReq(batch []domain.Item) (resp *http.Response, err error) {
 	b, err := json.Marshal(batch)
 	if err != nil {
 		return nil, err
 	}
-	a.client.Post("http://localhost:1323/", "json", bytes.NewBuffer(b))
-	resp, err = http.Post("http://localhost:1323/", "json", bytes.NewBuffer(b))
+	resp, err = ca.client.Post("http://localhost:1323/", "json", bytes.NewBuffer(b))
 	if err != nil {
 		return nil, err
 	}

@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 
+	"clientProducer/internal/adapter"
 	append_items_handler "clientProducer/internal/handlers/append_items"
 	"clientProducer/internal/logic/module/consumer_queue"
 	"clientProducer/internal/logic/usecase/append_items"
@@ -20,7 +21,8 @@ func main() {
 		log.SetLevel(log.DEBUG)
 	}
 
-	cons := consumer_queue.NewConsumerQueue()
+	consCli := adapter.NewClientAdapter()
+	cons := consumer_queue.NewConsumerQueue(consCli)
 	useCase := append_items.NewAppendItemsUseCase(cons)
 	h := append_items_handler.NewAppendItemHandler(useCase)
 
