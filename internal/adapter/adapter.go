@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"github.com/labstack/gommon/log"
 	"io/ioutil"
 	"net/http"
 	"strconv"
 
 	"clientProducer/internal/domain"
+
+	"github.com/labstack/gommon/log"
 )
 
 type ClientAdapter struct {
@@ -29,13 +30,19 @@ func NewClientAdapter() *ClientAdapter {
 
 func (ca *ClientAdapter) GetBufferFreeSpace() (bufferFreeSpace int, err error) {
 	resp, err := ca.client.Get("http://localhost:1323/buffer")
+	if err != nil {
+		return 0, err
+	}
+
 	if resp.StatusCode != 200 {
 		return 0, errors.New("server is full")
 	}
+
 	by, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return 0, err
 	}
+
 	bufferFreeSpace, err = strconv.Atoi(string(by))
 	if err != nil {
 		return 0, err
@@ -53,7 +60,7 @@ func (ca *ClientAdapter) PostBatch(batch []domain.Item) error {
 	if err != nil {
 		return err
 	}
-	log.Debug(by)
+	log.Debug(string(by), " batch len ", len(batch))
 
 	return nil
 }
