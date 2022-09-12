@@ -2,10 +2,12 @@ package append_items
 
 import (
 	"context"
+	"github.com/labstack/gommon/log"
 
 	"clientProducer/internal/domain"
 )
 
+//go:generate mockgen --destination=mocks/mock_consumer.go --package=mocks
 type Consumer interface {
 	Add(ctx context.Context, items []domain.Item) error
 }
@@ -19,8 +21,9 @@ func NewAppendItemsUseCase(cons Consumer) *appendItems {
 }
 
 func (a appendItems) Run(ctx context.Context, items []domain.Item) error {
-	if err := a.consumer.Add(ctx, items); err != nil {
-		return err
+	err := a.consumer.Add(ctx, items)
+	if err != nil {
+		log.Error(err)
 	}
-	return nil
+	return err
 }

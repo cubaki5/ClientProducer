@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	"clientProducer/internal/domain"
 
@@ -28,7 +29,8 @@ func (ai *appendItemsHandler) Handle(echoCtx echo.Context) error {
 	if err != nil {
 		return echoCtx.String(http.StatusBadRequest, err.Error())
 	}
-	con := context.Background()
+	con, cancel := context.WithTimeout(context.Background(), time.Second*2)
+	defer cancel()
 	if err = ai.uc.Run(con, items); err != nil {
 		return echoCtx.String(http.StatusBadRequest, err.Error())
 	}
