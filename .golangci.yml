@@ -1,0 +1,15 @@
+issues:
+  exclude-use-default: true
+  exclude:
+    - don't use an underscore in package name
+
+linters:
+  enable:
+      - goimports
+      - goconst
+      - gosec
+      - govet
+      - ineffassign
+      - revive
+      - typecheck
+      - unused

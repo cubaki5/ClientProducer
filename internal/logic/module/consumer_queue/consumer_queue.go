@@ -16,6 +16,8 @@ var (
 	once sync.Once
 )
 
+//go:generate mockgen --destination=mocks/mock_client_adapter.go --package=mocks
+
 type ClientConsumer interface {
 	GetBufferFreeSpace() (bufferFreeSpace int, err error)
 	PostBatch(batch []domain.Item) error
@@ -42,11 +44,14 @@ func NewConsumerQueue(cliCon ClientConsumer) *consumerQueue {
 }
 
 func (c *consumerQueue) Add(ctx context.Context, batch []domain.Item) error {
+	dautCtx, cancel := context.WithTimeout(ctx, time.Second*2)
+	defer cancel()
+
 	select {
 	case c.ch <- batch:
 		return nil
-	case <-ctx.Done():
-		err := errors.New("server is busy")
+	case <-dautCtx.Done():
+		err := errors.New("handlers queue full, check back later")
 		log.Error(err)
 		return err
 	}

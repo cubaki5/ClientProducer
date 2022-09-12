@@ -1,9 +1,8 @@
-package adapter
+package consumer_adapter
 
 import (
-	"bytes"
-	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -13,23 +12,25 @@ import (
 	"github.com/labstack/gommon/log"
 )
 
-type ClientAdapter struct {
-	client http.Client
+//go:generate  mockgen -source=adapter.go -destination=mocks/mock_consumer.go -package=mocks
+
+type httpClient interface {
+	PostReq(items []domain.Item) (*http.Response, error)
+	GetReq() (*http.Response, error)
 }
 
-func NewClientAdapter() *ClientAdapter {
+type ClientAdapter struct {
+	client httpClient
+}
+
+func NewClientAdapter(httpC httpClient) *ClientAdapter {
 	return &ClientAdapter{
-		client: http.Client{
-			Transport:     nil,
-			CheckRedirect: nil,
-			Jar:           nil,
-			Timeout:       0,
-		},
+		client: httpC,
 	}
 }
 
 func (ca *ClientAdapter) GetBufferFreeSpace() (bufferFreeSpace int, err error) {
-	resp, err := ca.client.Get("http://localhost:1323/buffer")
+	resp, err := ca.client.GetReq()
 	if err != nil {
 		return 0, err
 	}
@@ -47,11 +48,12 @@ func (ca *ClientAdapter) GetBufferFreeSpace() (bufferFreeSpace int, err error) {
 	if err != nil {
 		return 0, err
 	}
+
 	return bufferFreeSpace, nil
 }
 
 func (ca *ClientAdapter) PostBatch(batch []domain.Item) error {
-	resp, err := ca.marshallingAndPostReq(batch)
+	resp, err := ca.client.PostReq(batch)
 	if err != nil {
 		return err
 	}
@@ -60,19 +62,8 @@ func (ca *ClientAdapter) PostBatch(batch []domain.Item) error {
 	if err != nil {
 		return err
 	}
-	log.Debug(string(by), " batch len ", len(batch))
+
+	log.Debug(fmt.Sprintf("%s batch len %d", string(by), len(batch)))
 
 	return nil
-}
-
-func (ca *ClientAdapter) marshallingAndPostReq(batch []domain.Item) (resp *http.Response, err error) {
-	b, err := json.Marshal(batch)
-	if err != nil {
-		return nil, err
-	}
-	resp, err = ca.client.Post("http://localhost:1323/", "json", bytes.NewBuffer(b))
-	if err != nil {
-		return nil, err
-	}
-	return resp, nil
 }
