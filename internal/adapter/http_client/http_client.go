@@ -1,14 +1,15 @@
-package httpclient
+package http_client
 
 import (
 	"bytes"
-	"clientProducer/internal/domain"
 	"encoding/json"
 	"net/http"
+
+	"clientProducer/internal/domain"
 )
 
 const (
-	serverUrl = "http://localhost:1323"
+	serverURL = "http://localhost:1323"
 )
 
 type Client struct {
@@ -17,12 +18,7 @@ type Client struct {
 
 func NewClientAdapter() *Client {
 	return &Client{
-		client: http.Client{
-			Transport:     nil,
-			CheckRedirect: nil,
-			Jar:           nil,
-			Timeout:       0,
-		},
+		client: http.Client{},
 	}
 }
 
@@ -32,7 +28,7 @@ func (c *Client) PostReq(items []domain.Item) (*http.Response, error) {
 		return nil, err
 	}
 
-	resp, err := c.client.Post(serverUrl, "json", bytes.NewBuffer(b))
+	resp, err := c.client.Post(serverURL, "json", bytes.NewBuffer(b))
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +37,7 @@ func (c *Client) PostReq(items []domain.Item) (*http.Response, error) {
 }
 
 func (c *Client) GetReq() (*http.Response, error) {
-	resp, err := c.client.Get(serverUrl + "/buffer")
+	resp, err := c.client.Get(serverURL + "/buffer")
 	if err != nil {
 		return nil, err
 	}

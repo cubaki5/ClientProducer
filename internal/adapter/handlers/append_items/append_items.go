@@ -1,11 +1,13 @@
 package append_items
 
 import (
-	"clientProducer/internal/domain"
 	"encoding/json"
-	"github.com/labstack/echo/v4"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/labstack/echo/v4"
+
+	"clientProducer/internal/domain"
 )
 
 type Handler interface {
@@ -33,12 +35,13 @@ func (he *handlerEcho) Handle(echoCtx echo.Context) error {
 	return echoCtx.NoContent(http.StatusOK)
 }
 
-func parseRequestBody(echoCtx echo.Context) (items []domain.Item, err error) {
+func parseRequestBody(echoCtx echo.Context) ([]domain.Item, error) {
 	by, err := ioutil.ReadAll(echoCtx.Request().Body)
 	if err != nil {
 		return nil, err
 	}
 
+	var items []domain.Item
 	err = json.Unmarshal(by, &items)
 	if err != nil {
 		return nil, err

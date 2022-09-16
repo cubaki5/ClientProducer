@@ -1,8 +1,9 @@
 package append_items
 
 import (
-	"clientProducer/internal/domain"
 	"context"
+
+	"clientProducer/internal/domain"
 )
 
 type UseCase interface {

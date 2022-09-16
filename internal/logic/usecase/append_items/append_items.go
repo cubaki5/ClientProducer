@@ -2,6 +2,7 @@ package append_items
 
 import (
 	"context"
+
 	"github.com/labstack/gommon/log"
 
 	"clientProducer/internal/domain"

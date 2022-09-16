@@ -1,14 +1,16 @@
 package consumer_queue
 
 import (
-	"clientProducer/internal/domain"
-	"clientProducer/internal/logic/module/consumer_queue/mocks"
 	"context"
 	"errors"
-	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
+
+	"clientProducer/internal/domain"
+	"clientProducer/internal/logic/module/consumer_queue/mocks"
+
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/require"
 )
 
 func initMock(t *testing.T) *mocks.MockClientConsumer {
@@ -133,11 +135,12 @@ func TestConsumerQueue(t *testing.T) {
 				bufferFreeSpace: consumerBuffer,
 				cliCon:          mockCliCon,
 			}
-			conQueue.ch <- []domain.Item{{}, {}, {}, {}, {}}
+			err := conQueue.Add(context.Background(), []domain.Item{{}, {}, {}, {}, {}})
 
 			go conQueue.Run()
 			time.Sleep(time.Second)
 
+			require.NoError(t, err)
 			require.Equal(t, 0, len(conQueue.ch))
 		})
 		t.Run("PostBatch get correct batch", func(t *testing.T) {
@@ -150,8 +153,7 @@ func TestConsumerQueue(t *testing.T) {
 				cliCon:          mockCliCon,
 			}
 
-			ctx, _ := context.WithTimeout(context.Background(), time.Second)
-			err := conQueue.Add(ctx, []domain.Item{{}, {}, {}, {}, {}})
+			err := conQueue.Add(context.Background(), []domain.Item{{}, {}, {}, {}, {}})
 			require.NoError(t, err)
 
 			go conQueue.Run()

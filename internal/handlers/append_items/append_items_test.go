@@ -1,12 +1,14 @@
 package append_items
 
 import (
+	"errors"
+	"testing"
+
 	"clientProducer/internal/domain"
 	"clientProducer/internal/handlers/append_items/mocks"
-	"errors"
+
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func initMock(t *testing.T) *mocks.MockUseCase {

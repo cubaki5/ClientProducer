@@ -2,14 +2,16 @@ package consumer_adapter
 
 import (
 	"bytes"
-	"clientProducer/internal/adapter/consumer_adapter/mocks"
-	"clientProducer/internal/domain"
 	"errors"
-	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/require"
 	"io/ioutil"
 	"net/http"
 	"testing"
+
+	"clientProducer/internal/adapter/consumer_adapter/mocks"
+	"clientProducer/internal/domain"
+
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/require"
 )
 
 func initMock(t *testing.T) *mocks.MockhttpClient {
@@ -18,7 +20,7 @@ func initMock(t *testing.T) *mocks.MockhttpClient {
 	return mockCl
 }
 
-func newHttpResp(sc int, b string) *http.Response {
+func newHTTPResp(sc int, b string) *http.Response {
 	return &http.Response{
 		StatusCode: sc,
 		Body:       ioutil.NopCloser(bytes.NewBufferString(b)),
@@ -63,7 +65,7 @@ func TestClientAdapter(t *testing.T) {
 		for _, getTest := range getTests {
 			t.Run(getTest.testName, func(t *testing.T) {
 				mockCl := initMock(t)
-				resp := newHttpResp(getTest.statusCode, getTest.freeSpace)
+				resp := newHTTPResp(getTest.statusCode, getTest.freeSpace)
 				mockCl.EXPECT().GetReq().Return(resp, getTest.respError)
 				ac := NewClientAdapter(mockCl)
 				actVal, err := ac.GetBufferFreeSpace()
@@ -74,7 +76,7 @@ func TestClientAdapter(t *testing.T) {
 		}
 		t.Run("When response has status kod 200 and no error", func(t *testing.T) {
 			mockCl := initMock(t)
-			resp := newHttpResp(http.StatusOK, "5")
+			resp := newHTTPResp(http.StatusOK, "5")
 			mockCl.EXPECT().GetReq().Return(resp, nil)
 			ac := NewClientAdapter(mockCl)
 			actVal, err := ac.GetBufferFreeSpace()
@@ -87,7 +89,7 @@ func TestClientAdapter(t *testing.T) {
 	t.Run("Test Post Request", func(t *testing.T) {
 		t.Run("When response has no error", func(t *testing.T) {
 			mockCl := initMock(t)
-			resp := newHttpResp(http.StatusOK, "test")
+			resp := newHTTPResp(http.StatusOK, "test")
 			mockCl.EXPECT().PostReq([]domain.Item{{}}).Return(resp, nil)
 			ac := NewClientAdapter(mockCl)
 
@@ -97,7 +99,7 @@ func TestClientAdapter(t *testing.T) {
 		})
 		t.Run("When response has error", func(t *testing.T) {
 			mockCl := initMock(t)
-			resp := newHttpResp(http.StatusOK, "test")
+			resp := newHTTPResp(http.StatusOK, "test")
 			mockCl.EXPECT().PostReq(gomock.Any()).Return(resp, errors.New("test error"))
 			ac := NewClientAdapter(mockCl)
 

@@ -1,13 +1,15 @@
 package append_items
 
 import (
-	"clientProducer/internal/domain"
-	mock_append_items "clientProducer/internal/logic/usecase/append_items/mocks"
 	"context"
 	"errors"
+	"testing"
+
+	"clientProducer/internal/domain"
+	mock_append_items "clientProducer/internal/logic/usecase/append_items/mocks"
+
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func initMock(t *testing.T) *mock_append_items.MockConsumer {

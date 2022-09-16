@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"clientProducer/internal/domain"
-
 	"github.com/labstack/gommon/log"
+
+	"clientProducer/internal/domain"
 )
 
 //go:generate  mockgen -source=adapter.go -destination=mocks/mock_consumer.go -package=mocks
