@@ -6,9 +6,9 @@ import (
 	"sync"
 	"time"
 
-	"clientProducer/internal/domain"
-
 	"github.com/labstack/gommon/log"
+
+	"clientProducer/internal/domain"
 )
 
 var (
@@ -16,9 +16,11 @@ var (
 	once sync.Once
 )
 
+//go:generate mockgen --destination=mocks/mock_client_adapter.go --package=mocks
+
 type ClientConsumer interface {
-	GetBufferFreeSpace() (bufferFreeSpace int, err error)
-	PostBatch(batch []domain.Item) error
+	GetBufferFreeSpace() (int, error)
+	PostBatch([]domain.Item) error
 }
 
 type consumerQueue struct {
@@ -42,11 +44,14 @@ func NewConsumerQueue(cliCon ClientConsumer) *consumerQueue {
 }
 
 func (c *consumerQueue) Add(ctx context.Context, batch []domain.Item) error {
+	dautCtx, cancel := context.WithTimeout(ctx, time.Second*2)
+	defer cancel()
+
 	select {
 	case c.ch <- batch:
 		return nil
-	case <-ctx.Done():
-		err := errors.New("server is busy")
+	case <-dautCtx.Done():
+		err := errors.New("handlers queue full, check back later")
 		log.Error(err)
 		return err
 	}
@@ -72,7 +77,9 @@ func (c *consumerQueue) Run() {
 	}
 }
 
-func (c *consumerQueue) getFreeSpace() (bufFreeSpace int, err error) {
+func (c *consumerQueue) getFreeSpace() (int, error) {
+	var bufFreeSpace int
+	var err error
 	ticker := time.NewTicker(itemServeTime)
 	for range ticker.C {
 		bufFreeSpace, err = c.cliCon.GetBufferFreeSpace()
@@ -87,9 +94,9 @@ func (c *consumerQueue) getFreeSpace() (bufFreeSpace int, err error) {
 	return bufFreeSpace, nil
 }
 
-func (c *consumerQueue) batchDivider(batch []domain.Item) (dividedBatch []domain.Item) {
+func (c *consumerQueue) batchDivider(batch []domain.Item) []domain.Item {
 
-	dividedBatch = batch
+	dividedBatch := batch
 	if len(batch) > c.bufferFreeSpace {
 		con, cancel := context.WithTimeout(context.Background(), time.Second*2)
 		defer cancel()
